@@ -8,11 +8,20 @@ class Section:
 		self.data = dict()
 		
 	def __str__(self):
-		return self.id
+		return "{0} = {1}".format(self.name, self.data)
 		
 	#data is a 2 item tuple containing (key, value)
 	def AddData(self, data):
 		self.data[data[0]] = data[1]
+		
+	#data for specific platform
+	def AddTargetedData(self, data):
+		k = data[0]
+		v = data[1]
+		if k in self.data:
+			self.data[k].append(v)
+		else:
+			self.data[k] = [v]
 		
 #make sure comment is extracted
 def ExtractComment(s):
@@ -84,6 +93,7 @@ def ParseSections(rootDir, f):
 			sections.append(currentSection)
 		elif ":" in l: #value whos key is not unique (stored in list)
 			data = ParseKeyValue(l,':')
+			currentSection.AddTargetedData(data)
 		elif "=" in l: #value whos key is unique
 			data = ParseKeyValue(l)
 			currentSection.AddData(data)
@@ -96,13 +106,16 @@ def ParseSections(rootDir, f):
 def Generate(rootDir, f):
 	sections = ParseSections(rootDir, f)
 	
+	for s in sections:
+		print s
 	#create cmake lists file
-	cmakeFile = open("CmakeLists.txt", "w")
-	
-	#Write project heading
-	ps = GetSection("ProjectSettings", sections)
-	WriteProjectSettings(cmakeFile, ps)
-	
-	#construct rest of CmakeFile
-	CreateCmakeFile(rootDir, cmakeFile, sections)
-	
+	cmakeFile = open(rootDir + "/CmakeLists.txt", "w")
+	if cmakeFile:
+		#Write project heading
+		ps = GetSection("ProjectSettings", sections)
+		WriteProjectSettings(cmakeFile, ps)
+		
+		#construct rest of CmakeFile
+		CreateCmakeFile(rootDir, cmakeFile, sections)
+	else:
+		print("Failed to create cmakeFile at " + rootDir + "/CmakeLists.txt")

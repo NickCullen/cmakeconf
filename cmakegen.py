@@ -11,9 +11,17 @@ class Section:
 	def AddData(self, data):
 		self.data[data[0]] = data[1]
 		
+#make sure comment is extracted
+def ExtractComment(s):
+	try:
+		index = s.index(';')
+		return s[0:index]
+	except:
+		return s
+
 #trims spaces at start and end of string
 def Trim(s):
-	return s.strip()
+	return ExtractComment(s).strip()
 	
 #returns string value of section
 def ParseSection(line):
@@ -51,6 +59,10 @@ def Generate(rootDir, f):
 	sections = []
 	currentSection = None
 	for l in f:
+		#goto next line if it is a comment line
+		if l.startswith(';'):
+			continue
+			
 		if l.startswith('['):
 			currentSection = Section(ParseSection(l))
 			sections.append(currentSection)

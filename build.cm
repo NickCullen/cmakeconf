@@ -1,6 +1,3 @@
-[ProjectSettings]
-name="My Project"
-mybool=True
-myint=45
-myfloat = 5345.234
-myString = this is a string without quotes
+[ProjectSettings]  
+Name="My Example Project" 	
+UseFolders=True

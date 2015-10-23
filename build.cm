@@ -2,3 +2,7 @@
 MinCmakeVer=2.6
 Name="My Example Project" 	
 UseFolders=ON
+
+[ProjectIncludeFolders]
+Shared:include/
+

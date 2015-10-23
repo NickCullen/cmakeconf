@@ -35,9 +35,9 @@ def ParseFloatOrInt(value):
 	return float(value) if '.' in value else int(value)
 	
 #parses key and value readline
-def ParseKeyValue(line):
-	k = Trim(line.split('=')[0])
-	v = Trim(line.split('=')[1])
+def ParseKeyValue(line, seperator='='):
+	k = Trim(line.split(seperator)[0])
+	v = Trim(line.split(seperator)[1])
 	
 	if v.startswith('"') and v.endswith('"'): #string (trim off " marks)
 		v = v[1:-1]
@@ -76,14 +76,15 @@ def ParseSections(rootDir, f):
 	sections = []
 	currentSection = None
 	for l in f:
-		#goto next line if it is a comment line
-		if l.startswith(';'):
+		if l.startswith(';'): #comment line
 			continue
 			
-		if l.startswith('['):
+		if l.startswith('['): #beginning of new section
 			currentSection = Section(ParseSection(l))
 			sections.append(currentSection)
-		elif "=" in l:
+		elif ":" in l: #value whos key is not unique (stored in list)
+			data = ParseKeyValue(l,':')
+		elif "=" in l: #value whos key is unique
 			data = ParseKeyValue(l)
 			currentSection.AddData(data)
 	

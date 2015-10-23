@@ -1,7 +1,10 @@
+from string import Template
+from cmake_templates import *
+
 #class which wraps up section data from the .cm file
 class Section:
 	def __init__(self,sectionID):
-		self.id = sectionID
+		self.name = sectionID
 		self.data = dict()
 		
 	def __str__(self):
@@ -51,11 +54,25 @@ def ParseKeyValue(line):
 		
 	return(k,v)
 	
-#Runs the process of generating cmake files
-#rootDir is a string for the root directory
-#f is the python loaded files
-def Generate(rootDir, f):
+#returns the data part of the required section from the list of sections
+def GetSection(name, sections):
+	for s in sections:
+		if s.name == name:
+			return s.data
+	return None
 	
+#function that constructs the Cmake files.
+#rootDir is a string for the root directory
+#f is the CMakeLists.txt file
+#sections is all the sections and their key&value data pairs from build.cm
+def CreateCmakeFile(rootDir, f, sections):
+	return None
+
+	
+#parses the .cm file
+#rootDir is a string for the root directory
+#f is the python loaded build.cm file
+def ParseSections(rootDir, f):
 	sections = []
 	currentSection = None
 	for l in f:
@@ -70,7 +87,21 @@ def Generate(rootDir, f):
 			data = ParseKeyValue(l)
 			currentSection.AddData(data)
 	
-	for section in sections:
-		print("section = " + str(section))
-		print(section.data)
+	return sections
+	
+#Runs the process of generating cmake files
+#rootDir is a string for the root directory
+#f is the python loaded build.cm file
+def Generate(rootDir, f):
+	sections = ParseSections(rootDir, f)
+	
+	#create cmake lists file
+	cmakeFile = open("CmakeLists.txt", "w")
+	
+	#Write project heading
+	ps = GetSection("ProjectSettings", sections)
+	WriteProjectSettings(cmakeFile, ps)
+	
+	#construct rest of CmakeFile
+	CreateCmakeFile(rootDir, cmakeFile, sections)
 	

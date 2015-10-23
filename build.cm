@@ -1,3 +1,4 @@
 [ProjectSettings]  
+MinCmakeVer=2.6
 Name="My Example Project" 	
-UseFolders=True
+UseFolders=ON

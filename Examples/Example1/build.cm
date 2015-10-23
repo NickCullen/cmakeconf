@@ -7,6 +7,7 @@ UseFolders=ON					;For visual studio project folders to displayed in project
 ;C #define variables here
 [ProjectDefinitions]
 Shared: MySharedDef		;This will be used on all configurations
+Shared: AnotherDef
 Win: MyWindowsDef		;will only be used on windows
 Mac: MyMacDef			;...mac
 Lin: MyLinuxDef			;...linux

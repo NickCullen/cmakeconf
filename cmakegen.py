@@ -75,7 +75,9 @@ def GetSection(name, sections):
 #f is the CMakeLists.txt file
 #sections is all the sections and their key&value data pairs from build.cm
 def CreateCmakeFile(rootDir, f, sections):
-	return None
+	definitions = GetSection("ProjectDefinitions", sections)
+	if definitions:
+		WriteDefinitions(f,definitions)
 
 	
 #parses the .cm file
@@ -105,9 +107,7 @@ def ParseSections(rootDir, f):
 #f is the python loaded build.cm file
 def Generate(rootDir, f):
 	sections = ParseSections(rootDir, f)
-	
-	for s in sections:
-		print s
+
 	#create cmake lists file
 	cmakeFile = open(rootDir + "/CmakeLists.txt", "w")
 	if cmakeFile:

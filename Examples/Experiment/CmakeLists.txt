@@ -1,0 +1,10 @@
+cmake_minimum_required (VERSION 2.6)
+project(My Example Project)
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+add_definitions(-DMySharedDef)
+add_definitions(-DOneMoreSHAREDDef)
+if(Win32)
+add_definitions(-DMyWindowsDef)
+add_definitions(-DOneMoreWINDOWSDef)
+
+endif()

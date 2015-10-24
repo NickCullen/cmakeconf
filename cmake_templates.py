@@ -4,7 +4,7 @@ from string import Template
 
 #for putting a template inside an ifdef guard
 TIfGuard = Template("""if(${condition})
-\t${innerbody}
+${innerbody}
 endif()""")
 
 #For minimum cmake version and project name
@@ -21,19 +21,26 @@ TDefinition = Template("add_definitions(-D${definition})")
 
 
 #-----Write Functions-----
-def WriteProjectSettings(f, d):
-	s = TProjectSettings.substitute(d)
-	f.write(s)
+#Puts innerbody into TIfGuard template with the given condition
+#then returns the string
+def WrapInGuard(condition, innerbody):
+	return TIfGuard.substitute(dict(condition=condition, innerbody=innerbody))
+	
+def WriteProjectSettings(f, section):
+	output = TProjectSettings.substitute(section.data)
+	f.write(output)
 	
 	
-def WriteDefinitions(f, d):
-	for k,v in d.iteritems():
-		if k.lower() != "shared": #platform specific
-			for item in v:
-				s = TDefinition.substitute(dict(definition=item))
-				f.write(TIfGuard.substitute(dict(condition=k, innerbody=s)))
-				f.write("\n")
-		else: #shared 
-			for item in v: #loop through all the shared definitions and output them to the file
-				f.write(TDefinition.substitute(dict(definition=item)))
-				f.write("\n")
+def WriteDefinitions(f, sections):
+	#first write the one which is not platform specific
+	for s in sections:
+		defs = s.data[":"]
+		
+		#gather definitions to be output
+		output = ""
+		for d in defs:
+			output += TDefinition.substitute(dict(definition=d)) + "\n"
+			
+		#This line look pretty complicated but all it really is doing is writing output
+		#to the file if there is no condition. Else it writes the output wrapped in an ifguard to file
+		f.write(output if not s.HasCondition() else WrapInGuard(s.condition, output))

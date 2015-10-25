@@ -37,6 +37,8 @@ def WrapInGuard(condition, innerbody):
 	return TIfGuard.substitute(dict(condition=condition, innerbody=innerbody))
 	
 def WriteProjectSettings(f, section):
+	#defaults
+	if "UseFolders" not in section.data: section.data["UseFolders"] = "OFF"
 	output = TProjectSettings.substitute(section.data)
 	f.write(output)
 	
@@ -97,9 +99,9 @@ def WriteSourceDirectories(f, rootDir, sections):
 		
 #Writes the module output section of the CmakeLists file
 def WriteModuleOutput(f, m):
-	projectName = m.projectSettings.data["Name"]	#name of lib/exe
+	name = m.settings.data["Name"]	#name of lib/exe
 	o = m.settings.data["Output"]				#build type (lib/exe)
 	if "exe" in o:
-		f.write(TExecutable.substitute(dict(project=projectName)))
+		f.write(TExecutable.substitute(dict(project=name)))
 	
 	return None

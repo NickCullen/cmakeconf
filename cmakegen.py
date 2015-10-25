@@ -188,7 +188,10 @@ def CreateCmakeFile(rootDir, f, sections):
 #f is the python loaded build.cm file
 def Generate(rootDir, f):
 	sections = ParseSections(rootDir, f)
-
+	
+	#ensure rootDir contains forward slashes and NOT backslashes
+	rootDir = rootDir.replace('\\','/')
+	
 	#create cmake lists file
 	cmakeFile = open(rootDir + "/CmakeLists.txt", "w")
 	if cmakeFile:

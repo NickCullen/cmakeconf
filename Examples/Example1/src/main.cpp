@@ -4,9 +4,9 @@
 int main(int argc, char** argv)
 {
 #ifdef SAYGOODBYE
-	printf("Goodbye, World!");
+	printf("Goodbye, World!\n");
 #else
-	printf("Hello, World!");
+	printf("Hello, World!\n");
 #endif
 	
 	return 0;

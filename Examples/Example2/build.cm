@@ -1,0 +1,16 @@
+[ProjectSettings]  			
+MinCmakeVer=2.6				
+Name="Example2" 		
+
+[ProjectIncludeDirectories]	
+/include/MathsFuncs
+/include/UtilFuncs
+
+[ProjectSourceDirectories]
+/src
+/src/MathsFuncs
+/src/UtilFuncs
+
+[Module]
+Output=executable
+Name="Example2"

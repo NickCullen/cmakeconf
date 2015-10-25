@@ -1,6 +1,6 @@
 from string import Template
 
-#-----template objects----
+#-----template objects-----
 
 #for putting a template inside an ifdef guard
 TIfGuard = Template("""if(${condition})

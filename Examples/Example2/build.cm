@@ -1,6 +1,7 @@
 [ProjectSettings]  			
 MinCmakeVer=2.6				
-Name="Example2" 		
+Name="Example2"
+UseFolders=ON 		
 
 [ProjectIncludeDirectories]	
 /include/MathsFuncs

@@ -49,7 +49,10 @@ endif()
 """)
 
 #template for exectuable output
-TExecutableOutput = Template('set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${dir}")\n')
+TExecutableOutput = Template('set(EXECUTABLE_OUTPUT_PATH "${dir}")\n')
+
+#template for library output
+TLibraryoutput = Template('set(LIBRARY_OUTPUT_PATH "${dir}")\n')
 
 #-----Write Functions-----
 #Puts innerbody into TIfGuard template with the given condition
@@ -172,18 +175,33 @@ def WriteLinkLibs(f, rootDir, sections):
 			output = TAppendPythonVariable.substitute(dict(var="LIBS", appendedval=l))
 			f.write(output if not s.HasCondition() else WrapInGuard(s.condition, output))
 			
+			
+#Writes the cmake runtime/lib etc. outputs
+def WriteOutputs(f, rootDir, sections):
+	for s in sections:
+		if "Runtime" in s.data:
+			runtime = s.data["Runtime"]
+			runtime = runtime if runtime.startswith('/') else "/"+runtime
+			runtime = rootDir + runtime
+			output = TExecutableOutput.substitute(dict(dir=runtime))
+			f.write(output if not s.HasCondition() else WrapInGuard(s.condition, output))
+			
+			
+			
 #Writes the module output section of the CmakeLists file
 def WriteModuleOutput(f, rootDir, m):
 	name = m.settings.data["Name"]	#name of lib/exe
 	t = m.settings.data["Type"]	#build type (lib/exe)
 	if "exe" in t:
 		#for setting output dir
+		'''
 		if "Output" in m.settings.data:
 			o = m.settings.data["Output"]
 			o = o if o.startswith('/') else "/"+o
 			o = rootDir + o
 			f.write(TExecutableOutput.substitute(dict(dir=o)))
-			
+		'''
+		
 		f.write(TExecutable.substitute(dict(project=name)))
 		f.write(TTargetLinkLibs.substitute(dict(name=name)))
 		

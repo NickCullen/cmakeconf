@@ -43,6 +43,7 @@ class Module:
 	sources = None						#list of source sections (note some may be for targeted platforms) for this module
 	projectLibDirectories = None		#project lib directories (local libs)
 	libs = None							#linked libraries for this module
+	outputSettings = None				#settings for output (runtime/libs etc.)
 	
 	def __init__(self):
 		return None
@@ -188,6 +189,11 @@ def CreateCmakeFile(rootDir, f, sections):
 		WriteLinkLibs(f, rootDir, linkedLibs)
 		module.libs = linkedLibs
 
+	outputs = GetSections("OutputSettings", sections)
+	if outputs:
+		WriteOutputs(f,rootDir, outputs)
+		module.outputSettings = outputs
+		
 	moduleSettings = GetSectionByIdentifier("Module", sections)
 	if moduleSettings:
 		module.settings = moduleSettings

@@ -12,10 +12,18 @@ Name="Example3"
 [WIN32:ProjectLibDirectories]
 /lib/Win32/lua
 
-[WIN32:LinkLibs]
+[APPLE:ProjectLibDirectories]
+/lib/Mac/lua
+
+[LinkLibs]
 lua53
+
+[WIN32:OutputSettings]
+Runtime=/bin/Windows
+
+[APPLE:OutputSettings]
+Runtime=/bin/Mac
 
 [Module]
 Type=executable
 Name="Example3"
-Output=/bin

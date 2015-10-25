@@ -30,13 +30,26 @@ TSourceGroup = Template('source_group("${folder}" FILES $${${files}})\n')
 #for outputting an executable
 TExecutable = Template("add_executable(${project} $${SOURCES} $${HEADERS})\n")
 
-#template for appending to a cmake variable
+#template for appending a cmake variable to another cmake variable
 TAppendVariable = Template("set( ${var} $${${var}} $${${appendedval}})\n")
+
+#template for appending a python variable to a cmake variable
+TAppendPythonVariable = Template("set( ${var} $${${var}} ${appendedval})\n")
 
 #template for setting cmake variable
 TMakeVariable = Template('set (${var} ${value})\n')
 
+#template for adding a link directory
+TLinkDirectory = Template('link_directories("${dir}")')
 
+#template for targeting link libs
+TTargetLinkLibs = Template("""if(NOT LIBS STREQUAL "")
+target_link_libraries(${name} $${LIBS})
+endif()
+""")
+
+#template for exectuable output
+TExecutableOutput = Template('set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${dir}")\n')
 
 #-----Write Functions-----
 #Puts innerbody into TIfGuard template with the given condition
@@ -132,12 +145,47 @@ def WriteSourceDirectories(f, rootDir, sections):
 			d = d.replace('/','\\\\')
 			output = TSourceGroup.substitute(dict(folder="Source Files" + d, files=sourceID))
 			f.write(output if not s.HasCondition() else WrapInGuard(s.condition, output))
-		
+
+#includes local library directories 
+def WriteProjectLibDirectories(f, rootDir, sections):
+	#first write the one which is not platform specific
+	for s in sections:
+		dirs = s.data[":"]
+
+		output = ""
+		for d in dirs:
+			d = d if d.startswith('/') else "/"+d
+			
+			#include lib directory
+			output = TLinkDirectory.substitute(dict(dir=rootDir+d)) + "\n"
+			f.write(output if not s.HasCondition() else WrapInGuard(s.condition, output))
+
+#adds all libs to the LIBS cmake var
+def WriteLinkLibs(f, rootDir, sections):
+	#first write the one which is not platform specific
+	for s in sections:
+		libs = s.data[":"]
+
+		output = ""
+		for l in libs:
+			#add to LIBS cmake var
+			output = TAppendPythonVariable.substitute(dict(var="LIBS", appendedval=l))
+			f.write(output if not s.HasCondition() else WrapInGuard(s.condition, output))
+			
 #Writes the module output section of the CmakeLists file
-def WriteModuleOutput(f, m):
+def WriteModuleOutput(f, rootDir, m):
 	name = m.settings.data["Name"]	#name of lib/exe
-	o = m.settings.data["Output"]	#build type (lib/exe)
-	if "exe" in o:
+	t = m.settings.data["Type"]	#build type (lib/exe)
+	if "exe" in t:
+		#for setting output dir
+		if "Output" in m.settings.data:
+			o = m.settings.data["Output"]
+			o = o if o.startswith('/') else "/"+o
+			o = rootDir + o
+			f.write(TExecutableOutput.substitute(dict(dir=o)))
+			
 		f.write(TExecutable.substitute(dict(project=name)))
-	
+		f.write(TTargetLinkLibs.substitute(dict(name=name)))
+		
 	return None
+	

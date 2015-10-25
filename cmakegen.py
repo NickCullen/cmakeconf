@@ -36,11 +36,13 @@ class Section:
 			self.data[":"].append(data[1])
 		
 class Module:
-	settings = None				#settings for this module
-	projectSettings = None		#settings for this project
-	definitions = None			#definitions for this module
-	includes = None				#includes for this module
-	sources = None				#list of source sections (note some may be for targeted platforms) for this module
+	settings = None						#settings for this module
+	projectSettings = None				#settings for this project
+	definitions = None					#definitions for this module
+	includes = None						#includes for this module
+	sources = None						#list of source sections (note some may be for targeted platforms) for this module
+	projectLibDirectories = None		#project lib directories (local libs)
+	libs = None							#linked libraries for this module
 	
 	def __init__(self):
 		return None
@@ -176,10 +178,20 @@ def CreateCmakeFile(rootDir, f, sections):
 		WriteSourceDirectories(f, rootDir, sources)
 		module.sources = sources
 		
+	projectLibDirectories = GetSections("ProjectLibDirectories", sections)
+	if projectLibDirectories:
+		WriteProjectLibDirectories(f, rootDir, projectLibDirectories)
+		module.projectLibDirectories = projectLibDirectories
+	
+	linkedLibs = GetSections("LinkLibs", sections)
+	if linkedLibs:
+		WriteLinkLibs(f, rootDir, linkedLibs)
+		module.libs = linkedLibs
+
 	moduleSettings = GetSectionByIdentifier("Module", sections)
 	if moduleSettings:
 		module.settings = moduleSettings
-		WriteModuleOutput(f, module)
+		WriteModuleOutput(f, rootDir, module)
 		
 	return module
 		

@@ -13,5 +13,5 @@ UseFolders=ON
 /src/UtilFuncs
 
 [Module]
-Output=executable
+Type=executable
 Name="Example2"

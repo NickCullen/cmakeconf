@@ -1,13 +1,21 @@
 [ProjectSettings]  			
 MinCmakeVer=2.6				
-Name="Example1" 		
+Name="Example3" 		
 
 [ProjectIncludeDirectories]	
 /include
+/include/lua
 
 [ProjectSourceDirectories]
 /src
 
+[WIN32:ProjectLibDirectories]
+/lib/Win32/lua
+
+[WIN32:LinkLibs]
+lua53
+
 [Module]
 Type=executable
-Name="Example1"
+Name="Example3"
+Output=/bin

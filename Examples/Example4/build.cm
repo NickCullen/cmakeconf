@@ -1,10 +1,9 @@
 [ProjectSettings]  			
 MinCmakeVer=2.6				
-Name="Example3" 		
+Name="Example4" 		
 
 [ProjectIncludeDirectories]	
 /include
-/include/lua
 
 [ProjectSourceDirectories]
 /src
@@ -13,7 +12,7 @@ Name="Example3"
 /lib/Win32/lua
 
 [APPLE:ProjectLibDirectories]
-/lib/Mac/lua
+/lib/Mac
 
 [WIN32:OutputSettings]
 Runtime=/bin/Windows
@@ -22,8 +21,8 @@ Runtime=/bin/Windows
 Runtime=/bin/Mac
 
 [LinkLibs]
-lua53
+glfw3
 
 [Module]
 Type=executable
-Name="Example3"
+Name="Example4"

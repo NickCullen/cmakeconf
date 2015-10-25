@@ -35,6 +35,25 @@ class Section:
 		else:
 			self.data[":"].append(data[1])
 		
+class Module:
+	settings = None				#settings for this module
+	projectSettings = None		#settings for this project
+	definitions = None			#definitions for this module
+	includes = None				#includes for this module
+	sources = None				#list of source sections (note some may be for targeted platforms) for this module
+	
+	def __init__(self):
+		return None
+		
+	#returns a list containing all the source cmake variables
+	def GetSourceList(self):
+		for s in self.sources:
+			print(s)
+			
+	#returns true if this module is for a specific platform target
+	def HasCondition(self):
+		return self.settings.HasCondition()
+	
 #make sure comment is extracted
 def ExtractComment(s):
 	try:
@@ -132,30 +151,48 @@ def ParseSections(rootDir, f):
 #f is the CMakeLists.txt file
 #sections is all the sections and their key&value data pairs from build.cm
 def CreateCmakeFile(rootDir, f, sections):
+	module = Module()
+	
+	ps = GetSectionByIdentifier("ProjectSettings", sections)
+	if ps:
+		WriteProjectSettings(f, ps)
+		module.projectSettings = ps
+			
+	#write required variables such as INCLUDES, SOURCES and LIBS
+	WriteRequiredVariables(f)
+	
 	definitions = GetSections("ProjectDefinitions", sections)	#get list of definition sections in file
 	if definitions:
 		WriteDefinitions(f,definitions)
+		module.definitions = definitions
+		
+	includes = GetSections("ProjectIncludeDirectories", sections)
+	if includes:
+		WriteIncludeDirectories(f, rootDir, includes)
+		module.includes = includes
+		
+	sources = GetSections("ProjectSourceDirectories", sections)
+	if sources:
+		WriteSourceDirectories(f, rootDir, sources)
+		module.sources = sources
+		
+	moduleSettings = GetSectionByIdentifier("Module", sections)
+	if moduleSettings:
+		module.settings = moduleSettings
+		WriteModuleOutput(f, module)
+		
+	return module
 		
 #Runs the process of generating cmake files
 #rootDir is a string for the root directory
 #f is the python loaded build.cm file
 def Generate(rootDir, f):
 	sections = ParseSections(rootDir, f)
-	for s in sections:
-		print(str(s))
 
 	#create cmake lists file
 	cmakeFile = open(rootDir + "/CmakeLists.txt", "w")
 	if cmakeFile:
-		#Write project heading
-		ps = GetSectionByIdentifier("ProjectSettings", sections)
-		if ps:
-			WriteProjectSettings(cmakeFile, ps)
-			
-			#construct rest of CmakeFile
-			CreateCmakeFile(rootDir, cmakeFile, sections)
-		else:
-			print("No ProjectSettings section found")
-		
+		#construct rest of CmakeFile
+		CreateCmakeFile(rootDir, cmakeFile, sections)
 	else:
 		print("Failed to create cmakeFile at " + rootDir + "/CmakeLists.txt")

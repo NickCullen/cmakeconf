@@ -1,10 +1,8 @@
-;all settings about this build.cm project
 [ProjectSettings]  			
-MinCmakeVer=2.6					;Minimum version of cmake required
-Name="My Example Project" 		;Name of project
-UseFolders=ON					;For visual studio project folders to displayed in project
+MinCmakeVer=2.6				
+Name="My Example Project" 	
+UseFolders=ON		
 
-;project definitions for all targets
 [ProjectDefinitions]
 MySharedDef
 OneMoreSHAREDDef
@@ -13,12 +11,16 @@ OneMoreSHAREDDef
 MyWindowsDef
 OneMoreWINDOWSDef
 
+[ProjectIncludeDirectories]	
+/include
 
-;additional include directories
-[ProjectIncludeFolders]	
-include/			;included on all configurations
-otherInclude/	;also included on all configurations
-winInclude/			;..windows
-macInclude/			;..mac
-linuxInclude/		;..linux
+[Win32:ProjectIncludeDirectories]
+/include/win32
+
+[Mac:ProjectIncludeDirectories]
+/include/Mac
+
+
+[ProjectSourceDirectories]
+/src
 

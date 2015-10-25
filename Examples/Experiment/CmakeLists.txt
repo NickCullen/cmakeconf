@@ -8,3 +8,13 @@ add_definitions(-DMyWindowsDef)
 add_definitions(-DOneMoreWINDOWSDef)
 
 endif()
+include_directories('/Users/nick/Desktop/cmakeconf/Examples/Experiment/include')
+if(Win32)
+include_directories('/Users/nick/Desktop/cmakeconf/Examples/Experiment/include/win32')
+
+endif()
+if(Mac)
+include_directories('/Users/nick/Desktop/cmakeconf/Examples/Experiment/include/Mac')
+
+endif()
+FILE(GLOB _src '/Users/nick/Desktop/cmakeconf/Examples/Experiment/src/*.cpp')

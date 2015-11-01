@@ -1,29 +1,29 @@
-[ProjectSettings]  			
+[ProjectSettings]  				;1. Settings for the CMake project
 MinCmakeVer=2.6				
 Name="Example3" 		
 
-[ProjectIncludeDirectories]	
+[ProjectIncludeDirectories]		;2. Any folders to be put on the projects include path
 /include
 /include/lua
 
-[ProjectSourceDirectories]
+[ProjectSourceDirectories]		;3. Any folders containing source files to be compiled in module
 /src
 
-[WIN32:ProjectLibDirectories]
+[WIN32:ProjectLibDirectories]	;4. Win32 specific library folders to be included 
 /lib/Win32/lua
 
-[APPLE:ProjectLibDirectories]
+[APPLE:ProjectLibDirectories]	;5. Mac specific library folders to be included
 /lib/Mac/lua
 
-[WIN32:OutputSettings]
+[WIN32:OutputSettings]			;6. Where to output module (win32 build)
 Runtime=/bin/Windows
 
-[APPLE:OutputSettings]
+[APPLE:OutputSettings]			;7. Where to output module (mac build)
 Runtime=/bin/Mac
 
-[LinkLibs]
+[LinkLibs]						;8. Libraries to be linked to module
 lua53
 
-[Module]
+[Module]						;9. Output type for this module
 Type=executable
 Name="Example3"

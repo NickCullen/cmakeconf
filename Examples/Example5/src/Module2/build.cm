@@ -9,5 +9,5 @@ Name="Module2"
 /src
 
 [Module]
-Type=statics
+Type=shared
 Name="Module2"

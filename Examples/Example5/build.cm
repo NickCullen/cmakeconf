@@ -11,10 +11,12 @@ Name="Example5"
 /src
 
 [WIN32:OutputSettings]
+Executable=/bin/win32
 Runtime=/bin/win32
 Libs=/lib/win32
 
 [APPLE:OutputSettings]
+Executable=/bin/mac
 Runtime=/bin/mac
 Libs=/lib/mac
 

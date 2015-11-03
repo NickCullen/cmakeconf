@@ -62,6 +62,9 @@ set(LIBS $${LIBS} $${${framework}_LIB})""")
 #template for exectuable output
 TExecutableOutput = Template('set(EXECUTABLE_OUTPUT_PATH "${dir}")\n')
 
+#template for exectuable output
+TRuntimeOutput = Template('set(RUNTIME_OUTPUT_DIRECTORY "${dir}")\n')
+
 #template for library output
 TLibraryoutput = Template('set(LIBRARY_OUTPUT_PATH "${dir}")\n')
 
@@ -201,12 +204,20 @@ def WriteLinkLibs(f, rootDir, sections):
 def WriteOutputs(f, rootDir, sections):
 	for s in sections:
 		print("OUTPUT SECTION = " + str(s))
+		if "Executable" in s.data:
+			runtime = s.data["Executable"]
+			runtime = runtime if runtime.startswith('/') else "/"+runtime
+			runtime = rootDir + runtime
+			output = TRuntimeOutput.substitute(dict(dir=runtime))
+			f.write(output if not s.HasCondition() else WrapInGuard(s.condition, output))
+			
 		if "Runtime" in s.data:
 			runtime = s.data["Runtime"]
 			runtime = runtime if runtime.startswith('/') else "/"+runtime
 			runtime = rootDir + runtime
 			output = TExecutableOutput.substitute(dict(dir=runtime))
 			f.write(output if not s.HasCondition() else WrapInGuard(s.condition, output))
+			
 		if "Libs" in s.data:
 			print("LIBS OUTPUT BEING SET")
 			statics = s.data["Libs"]

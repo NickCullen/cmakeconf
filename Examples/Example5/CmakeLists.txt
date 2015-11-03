@@ -30,11 +30,19 @@ endif()
 set( LIBS ${LIBS} Module1)
 set( LIBS ${LIBS} Module2)
 if(WIN32)
+set(RUNTIME_OUTPUT_DIRECTORY "/Users/nick/Desktop/cmakeconf/Examples/Example5/bin/win32")
+
+endif()
+if(WIN32)
 set(EXECUTABLE_OUTPUT_PATH "/Users/nick/Desktop/cmakeconf/Examples/Example5/bin/win32")
 
 endif()
 if(WIN32)
 set(LIBRARY_OUTPUT_PATH "/Users/nick/Desktop/cmakeconf/Examples/Example5/lib/win32")
+
+endif()
+if(APPLE)
+set(RUNTIME_OUTPUT_DIRECTORY "/Users/nick/Desktop/cmakeconf/Examples/Example5/bin/mac")
 
 endif()
 if(APPLE)

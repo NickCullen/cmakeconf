@@ -30,6 +30,12 @@ TSourceGroup = Template('source_group("${folder}" FILES $${${files}})\n')
 #for outputting an executable
 TExecutable = Template("add_executable(${project} $${SOURCES} $${HEADERS})\n")
 
+#for outputting a shared library
+TSharedLib = Template("add_library(${project} SHARED $${SOURCES} $${HEADERS})\n")
+
+#for outputting a static library
+TStaticLib = Template("add_library(${project} STATIC $${SOURCES} $${HEADERS})\n")
+
 #template for appending a cmake variable to another cmake variable
 TAppendVariable = Template("set( ${var} $${${var}} $${${appendedval}})\n")
 
@@ -48,11 +54,19 @@ target_link_libraries(${name} $${LIBS})
 endif()
 """)
 
+#for linking a framework on the mac
+TLinkFramework = Template("""find_library(${framework}_LIB ${framework})
+MARK_AS_ADVANCED(${framework}_LIB)
+set(LIBS $${LIBS} $${${framework}_LIB})""")
+
 #template for exectuable output
 TExecutableOutput = Template('set(EXECUTABLE_OUTPUT_PATH "${dir}")\n')
 
 #template for library output
 TLibraryoutput = Template('set(LIBRARY_OUTPUT_PATH "${dir}")\n')
+
+#template for including a submodule
+TSubmoduleInclude = Template('add_subdirectory(${dir})')
 
 #-----Write Functions-----
 #Puts innerbody into TIfGuard template with the given condition
@@ -171,21 +185,35 @@ def WriteLinkLibs(f, rootDir, sections):
 
 		output = ""
 		for l in libs:
-			#add to LIBS cmake var
-			output = TAppendPythonVariable.substitute(dict(var="LIBS", appendedval=l))
-			f.write(output if not s.HasCondition() else WrapInGuard(s.condition, output))
+			if not "-framework" in l:
+				#add to LIBS cmake var
+				output = TAppendPythonVariable.substitute(dict(var="LIBS", appendedval=l))
+				f.write(output if not s.HasCondition() else WrapInGuard(s.condition, output))
+			else:
+				frameworkName = l.replace("-framework ", "")
+				frameworkName = frameworkName.strip()
+				
+				output = TLinkFramework.substitute(dict(framework=frameworkName))
+				f.write(output if not s.HasCondition() else WrapInGuard(s.condition, output))
 			
 			
 #Writes the cmake runtime/lib etc. outputs
 def WriteOutputs(f, rootDir, sections):
 	for s in sections:
+		print("OUTPUT SECTION = " + str(s))
 		if "Runtime" in s.data:
 			runtime = s.data["Runtime"]
 			runtime = runtime if runtime.startswith('/') else "/"+runtime
 			runtime = rootDir + runtime
 			output = TExecutableOutput.substitute(dict(dir=runtime))
 			f.write(output if not s.HasCondition() else WrapInGuard(s.condition, output))
-			
+		if "Libs" in s.data:
+			print("LIBS OUTPUT BEING SET")
+			statics = s.data["Libs"]
+			statics = statics if statics.startswith('/') else "/"+statics
+			statics = rootDir + statics
+			output = TLibraryoutput.substitute(dict(dir=statics))
+			f.write(output if not s.HasCondition() else WrapInGuard(s.condition, output))
 			
 			
 #Writes the module output section of the CmakeLists file
@@ -204,6 +232,24 @@ def WriteModuleOutput(f, rootDir, m):
 		
 		f.write(TExecutable.substitute(dict(project=name)))
 		f.write(TTargetLinkLibs.substitute(dict(name=name)))
+	elif "shared" in t:
+		f.write(TSharedLib.substitute(dict(project=name)))
+		f.write(TTargetLinkLibs.substitute(dict(name=name)))
+	elif "static" in t:
+		f.write(TStaticLib.substitute(dict(project=name)))
+		f.write(TTargetLinkLibs.substitute(dict(name=name)))
 		
 	return None
 	
+
+#writes the include for a submodule
+def WriteSubmoduleIncludes(f, rootDir, sections):
+	print("PRINTING SUBMODS")
+	for s in sections:
+		submods = s.data[":"]
+		
+		for sm in submods:
+			sm = sm if sm.startswith('/') else "/"+sm
+			
+			output = TSubmoduleInclude.substitute(dict(dir=rootDir+sm)) + "\n"
+			f.write(output if not s.HasCondition() else WrapInGuard(s.condition, output))

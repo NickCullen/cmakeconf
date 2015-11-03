@@ -23,6 +23,12 @@ Runtime=/bin/Mac
 [LinkLibs]
 glfw3
 
+[APPLE:LinkLibs]
+-framework Cocoa
+-framework OpenGL
+-framework IOKit
+-framework CoreVideo
+
 [Module]
 Type=executable
 Name="Example4"

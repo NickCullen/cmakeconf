@@ -1,0 +1,13 @@
+[ProjectSettings]  			
+MinCmakeVer=2.6				
+Name="Module1" 		
+
+[ProjectIncludeDirectories]	
+/include
+
+[ProjectSourceDirectories]
+/src
+
+[Module]
+Type=static
+Name="Module1"

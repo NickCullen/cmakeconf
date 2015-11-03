@@ -44,6 +44,7 @@ class Module:
 	projectLibDirectories = None		#project lib directories (local libs)
 	libs = None							#linked libraries for this module
 	outputSettings = None				#settings for output (runtime/libs etc.)
+	subModules = None					#included submodules for this module
 	
 	def __init__(self):
 		return None
@@ -148,7 +149,26 @@ def ParseSections(rootDir, f):
 			
 	
 	return sections
-	
+
+#generates all the CMakeLists.txt files in the submodules
+def ParseSubModules(rootDir, subModuleSections):
+	for section in subModuleSections:
+		subModules = section.data[":"]
+		for sm in subModules:
+			
+			sm = sm if sm.startswith('/') else "/"+sm	#make sure the submodule starts with a forward slash
+			sm = sm if sm.endswith('/') else sm+"/"		#make sure it ends with a forward slash
+			
+			smDir = rootDir + sm	#the root directory for the submodule
+			print(smDir)
+			f = open(smDir+"build.cm")
+			if f:
+				Generate(smDir, f)
+			else:
+				print("Warning! no build.cm file found in sub module " + str(sm))
+		
+		
+		
 #function that constructs the Cmake files.
 #rootDir is a string for the root directory
 #f is the CMakeLists.txt file
@@ -199,17 +219,26 @@ def CreateCmakeFile(rootDir, f, sections):
 		module.settings = moduleSettings
 		WriteModuleOutput(f, rootDir, module)
 		
+	subModules = GetSections("SubModules", sections)
+	if subModules:
+		module.subModules = subModules
+		ParseSubModules(rootDir, subModules)	#we need to get the CMakeLists.txt file in all submodules first
+		WriteSubmoduleIncludes(f, rootDir, subModules)
+		
 	return module
 		
 #Runs the process of generating cmake files
 #rootDir is a string for the root directory
 #f is the python loaded build.cm file
 def Generate(rootDir, f):
+	print("Generating "+str(f))
 	sections = ParseSections(rootDir, f)
 	
 	#ensure rootDir contains forward slashes and NOT backslashes
 	rootDir = rootDir.replace('\\','/')
-	
+	if rootDir.endswith('/'):
+		rootDir = rootDir[:-1]
+		
 	#create cmake lists file
 	cmakeFile = open(rootDir + "/CmakeLists.txt", "w")
 	if cmakeFile:

@@ -1,0 +1,37 @@
+[ProjectSettings]  			
+MinCmakeVer=2.6				
+Name="Example5" 		
+
+[ProjectIncludeDirectories]	
+/include
+/src/Module1/include
+/src/Module2/include
+
+[ProjectSourceDirectories]
+/src
+
+[WIN32:OutputSettings]
+Runtime=/bin/win32
+Libs=/lib/win32
+
+[APPLE:OutputSettings]
+Runtime=/bin/mac
+Libs=/lib/mac
+
+[APPLE:ProjectLibDirectories]	;5. Mac specific library folders to be included
+/lib/mac
+
+[WIN32:ProjectLibDirectories]	;5. Mac specific library folders to be included
+/lib/win32
+
+[SubModules]
+/src/Module1
+/src/Module2
+
+[LinkLibs]
+Module1
+Module2
+
+[Module]
+Type=executable
+Name="Example5"

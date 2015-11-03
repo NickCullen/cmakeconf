@@ -23,7 +23,8 @@ int main(void)
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
-
+        glClear(GL_DEPTH);
+        
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
 

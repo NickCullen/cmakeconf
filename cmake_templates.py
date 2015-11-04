@@ -10,7 +10,9 @@ endif()\n""")
 #For minimum cmake version and project name
 TProjectSettings = Template("""cmake_minimum_required (VERSION ${MinCmakeVer})
 project(${Name})
-set_property(GLOBAL PROPERTY USE_FOLDERS ${UseFolders})\n""")
+set_property(GLOBAL PROPERTY USE_FOLDERS ${UseFolders})
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)\n""")
+
 
 #for including a definition
 TDefinition = Template("add_definitions(-D${definition})")
@@ -71,6 +73,10 @@ TLibraryoutput = Template('set(LIBRARY_OUTPUT_PATH "${dir}")\n')
 #template for including a submodule
 TSubmoduleInclude = Template('add_subdirectory(${dir})')
 
+#-----Helper Functions----
+def WriteToFile(f, output, condition = False, conditionID = ""):
+	f.write(output if not condition else WrapInGuard(conditionID, output))
+
 #-----Write Functions-----
 #Puts innerbody into TIfGuard template with the given condition
 #then returns the string
@@ -108,10 +114,8 @@ def WriteDefinitions(f, sections):
 		output = ""
 		for d in defs:
 			output += TDefinition.substitute(dict(definition=d)) + "\n"
-			
-		#This line look pretty complicated but all it really is doing is writing output
-		#to the file if there is no condition. Else it writes the output wrapped in an ifguard to file
-		f.write(output if not s.HasCondition() else WrapInGuard(s.condition, output))
+		
+		WriteToFile(f,output, s.HasCondition(), s.condition)
 
 #project include directories
 def WriteIncludeDirectories(f, rootDir, sections):
@@ -127,20 +131,20 @@ def WriteIncludeDirectories(f, rootDir, sections):
 			
 			#add include directory
 			output = TIncludeDirectory.substitute(dict(dir=rootDir+d)) + "\n"
-			f.write(output if not s.HasCondition() else WrapInGuard(s.condition, output))
+			WriteToFile(f,output, s.HasCondition(), s.condition)
 			
 			#glob all header files
 			output = THeaderGlob.substitute(dict(dir=rootDir+d, header_id=headerID)) + "\n"
-			f.write(output if not s.HasCondition() else WrapInGuard(s.condition, output))
+			WriteToFile(f,output, s.HasCondition(), s.condition)
 			
 			#append to HEADERS variable
 			output = TAppendVariable.substitute(dict(var="HEADERS", appendedval=headerID))
-			f.write(output if not s.HasCondition() else WrapInGuard(s.condition, output))
+			WriteToFile(f,output, s.HasCondition(), s.condition)
 			
 			#make source group so they appear in filters
 			d = d.replace('/','\\\\')
 			output = TSourceGroup.substitute(dict(folder="Header Files" + d, files=headerID))
-			f.write(output if not s.HasCondition() else WrapInGuard(s.condition, output))
+			WriteToFile(f,output, s.HasCondition(), s.condition)
 		
 #project source directories
 def WriteSourceDirectories(f, rootDir, sections):
@@ -155,16 +159,16 @@ def WriteSourceDirectories(f, rootDir, sections):
 			
 			#glob all source files
 			output = TSourceGlob.substitute(dict(dir=rootDir+d, source_id=sourceID)) + "\n"
-			f.write(output if not s.HasCondition() else WrapInGuard(s.condition, output))
+			WriteToFile(f,output, s.HasCondition(), s.condition)
 			
 			#append globbed source files to SOURCES cmake variable
 			output = TAppendVariable.substitute(dict(var="SOURCES", appendedval=sourceID))
-			f.write(output if not s.HasCondition() else WrapInGuard(s.condition, output))
+			WriteToFile(f,output, s.HasCondition(), s.condition)
 			
 			#make source group so they appear in filters
 			d = d.replace('/','\\\\')
 			output = TSourceGroup.substitute(dict(folder="Source Files" + d, files=sourceID))
-			f.write(output if not s.HasCondition() else WrapInGuard(s.condition, output))
+			WriteToFile(f,output, s.HasCondition(), s.condition)
 
 #includes local library directories 
 def WriteProjectLibDirectories(f, rootDir, sections):
@@ -178,7 +182,7 @@ def WriteProjectLibDirectories(f, rootDir, sections):
 			
 			#include lib directory
 			output = TLinkDirectory.substitute(dict(dir=rootDir+d)) + "\n"
-			f.write(output if not s.HasCondition() else WrapInGuard(s.condition, output))
+			WriteToFile(f,output, s.HasCondition(), s.condition)
 
 #adds all libs to the LIBS cmake var
 def WriteLinkLibs(f, rootDir, sections):
@@ -191,32 +195,31 @@ def WriteLinkLibs(f, rootDir, sections):
 			if not "-framework" in l:
 				#add to LIBS cmake var
 				output = TAppendPythonVariable.substitute(dict(var="LIBS", appendedval=l))
-				f.write(output if not s.HasCondition() else WrapInGuard(s.condition, output))
+				WriteToFile(f,output, s.HasCondition(), s.condition)
 			else:
 				frameworkName = l.replace("-framework ", "")
 				frameworkName = frameworkName.strip()
 				
 				output = TLinkFramework.substitute(dict(framework=frameworkName))
-				f.write(output if not s.HasCondition() else WrapInGuard(s.condition, output))
+				WriteToFile(f,output, s.HasCondition(), s.condition)
 			
 			
 #Writes the cmake runtime/lib etc. outputs
 def WriteOutputs(f, rootDir, sections):
 	for s in sections:
-		print("OUTPUT SECTION = " + str(s))
 		if "Executable" in s.data:
 			runtime = s.data["Executable"]
 			runtime = runtime if runtime.startswith('/') else "/"+runtime
 			runtime = rootDir + runtime
 			output = TRuntimeOutput.substitute(dict(dir=runtime))
-			f.write(output if not s.HasCondition() else WrapInGuard(s.condition, output))
+			WriteToFile(f,output, s.HasCondition(), s.condition)
 			
 		if "Runtime" in s.data:
 			runtime = s.data["Runtime"]
 			runtime = runtime if runtime.startswith('/') else "/"+runtime
 			runtime = rootDir + runtime
 			output = TExecutableOutput.substitute(dict(dir=runtime))
-			f.write(output if not s.HasCondition() else WrapInGuard(s.condition, output))
+			WriteToFile(f,output, s.HasCondition(), s.condition)
 			
 		if "Libs" in s.data:
 			print("LIBS OUTPUT BEING SET")
@@ -224,7 +227,7 @@ def WriteOutputs(f, rootDir, sections):
 			statics = statics if statics.startswith('/') else "/"+statics
 			statics = rootDir + statics
 			output = TLibraryoutput.substitute(dict(dir=statics))
-			f.write(output if not s.HasCondition() else WrapInGuard(s.condition, output))
+			WriteToFile(f,output, s.HasCondition(), s.condition)
 			
 			
 #Writes the module output section of the CmakeLists file
@@ -232,15 +235,6 @@ def WriteModuleOutput(f, rootDir, m):
 	name = m.settings.data["Name"]	#name of lib/exe
 	t = m.settings.data["Type"]	#build type (lib/exe)
 	if "exe" in t:
-		#for setting output dir
-		'''
-		if "Output" in m.settings.data:
-			o = m.settings.data["Output"]
-			o = o if o.startswith('/') else "/"+o
-			o = rootDir + o
-			f.write(TExecutableOutput.substitute(dict(dir=o)))
-		'''
-		
 		f.write(TExecutable.substitute(dict(project=name)))
 		f.write(TTargetLinkLibs.substitute(dict(name=name)))
 	elif "shared" in t:
@@ -255,7 +249,6 @@ def WriteModuleOutput(f, rootDir, m):
 
 #writes the include for a submodule
 def WriteSubmoduleIncludes(f, rootDir, sections):
-	print("PRINTING SUBMODS")
 	for s in sections:
 		submods = s.data[":"]
 		
@@ -263,4 +256,4 @@ def WriteSubmoduleIncludes(f, rootDir, sections):
 			sm = sm if sm.startswith('/') else "/"+sm
 			
 			output = TSubmoduleInclude.substitute(dict(dir=rootDir+sm)) + "\n"
-			f.write(output if not s.HasCondition() else WrapInGuard(s.condition, output))
+			WriteToFile(f,output, s.HasCondition(), s.condition)

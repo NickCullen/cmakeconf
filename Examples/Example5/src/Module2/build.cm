@@ -11,3 +11,6 @@ Name="Module2"
 [Module]
 Type=shared
 Name="Module2"
+
+[LinkLibs]
+Module1

@@ -1,4 +1,5 @@
 from string import Template
+import os
 
 #-----template objects-----
 
@@ -77,6 +78,20 @@ TSubmoduleInclude = Template('add_subdirectory(${dir})')
 def WriteToFile(f, output, condition = False, conditionID = ""):
 	f.write(output if not condition else WrapInGuard(conditionID, output))
 
+def InsertEnvVariable(s):
+	return Template(s).substitute(os.environ)
+
+def ContainsEnvVariable(s):
+	return ("$" in s)
+
+#removes all characters that may cause issues with cmake
+#such as ${} characters for environment variables
+def Strip(s):
+	chars = "${}"
+	for i in range(0,len(chars)):
+		s=s.replace(chars[i],"")
+	return s
+
 #-----Write Functions-----
 #Puts innerbody into TIfGuard template with the given condition
 #then returns the string
@@ -126,15 +141,21 @@ def WriteIncludeDirectories(f, rootDir, sections):
 		#gather definitions to be output
 		output = ""
 		for d in dirs:
-			d = d if d.startswith('/') else "/"+d
-			headerID = d.replace('/','_')
+			localDir = d if d.startswith("/") else "/"+d
+			headerID = Strip(localDir.replace('/','_'))
 			
+			#insert any environment variables
+			if ContainsEnvVariable(d):
+				d = InsertEnvVariable(d)
+			else:
+				d = rootDir + localDir
+				
 			#add include directory
-			output = TIncludeDirectory.substitute(dict(dir=rootDir+d)) + "\n"
+			output = TIncludeDirectory.substitute(dict(dir=d)) + "\n"
 			WriteToFile(f,output, s.HasCondition(), s.condition)
 			
 			#glob all header files
-			output = THeaderGlob.substitute(dict(dir=rootDir+d, header_id=headerID)) + "\n"
+			output = THeaderGlob.substitute(dict(dir=d, header_id=headerID)) + "\n"
 			WriteToFile(f,output, s.HasCondition(), s.condition)
 			
 			#append to HEADERS variable
@@ -142,8 +163,8 @@ def WriteIncludeDirectories(f, rootDir, sections):
 			WriteToFile(f,output, s.HasCondition(), s.condition)
 			
 			#make source group so they appear in filters
-			d = d.replace('/','\\\\')
-			output = TSourceGroup.substitute(dict(folder="Header Files" + d, files=headerID))
+			localDir = Strip(localDir.replace('/','\\\\'))
+			output = TSourceGroup.substitute(dict(folder="Header Files" + localDir, files=headerID))
 			WriteToFile(f,output, s.HasCondition(), s.condition)
 		
 #project source directories
@@ -154,11 +175,17 @@ def WriteSourceDirectories(f, rootDir, sections):
 
 		output = ""
 		for d in dirs:
-			d = d if d.startswith('/') else "/"+d
-			sourceID = d.replace('/','_')
+			localDir = d if d.startswith("/") else "/"+d
+			sourceID = Strip(localDir.replace('/','_'))
 			
+			#insert any environment variables
+			if ContainsEnvVariable(d):
+				d = InsertEnvVariable(d)
+			else:
+				d = rootDir + localDir
+				
 			#glob all source files
-			output = TSourceGlob.substitute(dict(dir=rootDir+d, source_id=sourceID)) + "\n"
+			output = TSourceGlob.substitute(dict(dir=d, source_id=sourceID)) + "\n"
 			WriteToFile(f,output, s.HasCondition(), s.condition)
 			
 			#append globbed source files to SOURCES cmake variable
@@ -166,8 +193,8 @@ def WriteSourceDirectories(f, rootDir, sections):
 			WriteToFile(f,output, s.HasCondition(), s.condition)
 			
 			#make source group so they appear in filters
-			d = d.replace('/','\\\\')
-			output = TSourceGroup.substitute(dict(folder="Source Files" + d, files=sourceID))
+			localDir = Strip(localDir.replace('/','\\\\'))
+			output = TSourceGroup.substitute(dict(folder="Source Files" + localDir, files=sourceID))
 			WriteToFile(f,output, s.HasCondition(), s.condition)
 
 #includes local library directories 
@@ -178,10 +205,15 @@ def WriteProjectLibDirectories(f, rootDir, sections):
 
 		output = ""
 		for d in dirs:
-			d = d if d.startswith('/') else "/"+d
-			
+			#insert any environment variables
+			if ContainsEnvVariable(d):
+				d = InsertEnvVariable(d)
+			else:
+				d = d if d.startswith('/') else "/"+d
+				d = rootDir + d
+				
 			#include lib directory
-			output = TLinkDirectory.substitute(dict(dir=rootDir+d)) + "\n"
+			output = TLinkDirectory.substitute(dict(dir=d)) + "\n"
 			WriteToFile(f,output, s.HasCondition(), s.condition)
 
 #adds all libs to the LIBS cmake var
@@ -209,23 +241,35 @@ def WriteOutputs(f, rootDir, sections):
 	for s in sections:
 		if "Executable" in s.data:
 			runtime = s.data["Executable"]
-			runtime = runtime if runtime.startswith('/') else "/"+runtime
-			runtime = rootDir + runtime
+			#insert any environment variables
+			if ContainsEnvVariable(runtime):
+				runtime = InsertEnvVariable(runtime)
+			else:
+				runtime = runtime if runtime.startswith('/') else "/"+runtime
+				runtime = rootDir + runtime
 			output = TRuntimeOutput.substitute(dict(dir=runtime))
 			WriteToFile(f,output, s.HasCondition(), s.condition)
 			
 		if "Runtime" in s.data:
 			runtime = s.data["Runtime"]
-			runtime = runtime if runtime.startswith('/') else "/"+runtime
-			runtime = rootDir + runtime
+			#insert any environment variables
+			if ContainsEnvVariable(runtime):
+				runtime = InsertEnvVariable(runtime)
+			else:
+				runtime = runtime if runtime.startswith('/') else "/"+runtime
+				runtime = rootDir + runtime
 			output = TExecutableOutput.substitute(dict(dir=runtime))
 			WriteToFile(f,output, s.HasCondition(), s.condition)
 			
 		if "Libs" in s.data:
 			print("LIBS OUTPUT BEING SET")
 			statics = s.data["Libs"]
-			statics = statics if statics.startswith('/') else "/"+statics
-			statics = rootDir + statics
+			#insert any environment variables
+			if ContainsEnvVariable(statics):
+				statics = InsertEnvVariable(statics)
+			else:
+				statics = statics if statics.startswith('/') else "/"+statics
+				statics = rootDir + statics
 			output = TLibraryoutput.substitute(dict(dir=statics))
 			WriteToFile(f,output, s.HasCondition(), s.condition)
 			

@@ -1,0 +1,15 @@
+[ProjectSettings]
+Name="TestEnvironmentVars"
+MinCmakeVer=2.6
+
+[ProjectSourceDirectories]
+${VICI_HOME}/src
+
+[ProjectIncludeDirectories]
+${VICI_HOME}/include
+
+[ProjectLibDirectories]
+${VICI_HOME}/lib
+
+[OutputSettings]
+${VICI_HOME}/bin
